@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, User, Phone, Mail, LogOut, History } from "lucide-react";
+import { ArrowLeft, User, Phone, Mail, LogOut, Building2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { signOut } from "@/lib/auth";
+import { signOut } from "@/lib/auth-ald";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Profile = () => {
@@ -17,6 +17,8 @@ const Profile = () => {
     full_name: "",
     phone: "",
     email: "",
+    company_name: "",
+    user_type: "",
   });
 
   useEffect(() => {
@@ -43,6 +45,8 @@ const Profile = () => {
         full_name: profileData.full_name || "",
         phone: profileData.phone || "",
         email: user.email || "",
+        company_name: profileData.company_name || "",
+        user_type: profileData.user_type || "",
       });
     } catch (error: any) {
       toast.error("Erro ao carregar perfil");
@@ -144,6 +148,16 @@ const Profile = () => {
             />
           </div>
 
+          {profile.user_type === "company" && (
+            <div>
+              <Label htmlFor="company" className="flex items-center gap-2">
+                <Building2 className="w-4 h-4" />
+                Empresa
+              </Label>
+              <Input id="company" value={profile.company_name} disabled />
+            </div>
+          )}
+
           <div>
             <Label htmlFor="email" className="flex items-center gap-2">
               <Mail className="w-4 h-4" />
@@ -158,15 +172,6 @@ const Profile = () => {
         </Card>
 
         {/* Logout */}
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={() => navigate("/history")}
-        >
-          <History className="w-4 h-4 mr-2" />
-          Ver Histórico de Corridas
-        </Button>
-
         <Button
           variant="destructive"
           className="w-full"

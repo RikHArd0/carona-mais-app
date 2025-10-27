@@ -5,23 +5,24 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { signIn, signUp } from "@/lib/auth";
+import { signIn, signUp } from "@/lib/auth-ald";
 import { supabase } from "@/integrations/supabase/client";
-import { Car } from "lucide-react";
+import { Building2, Car } from "lucide-react";
 
-const Auth = () => {
+const ALDAuth = () => {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [userType, setUserType] = useState<"company" | "driver">("company");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     fullName: "",
     phone: "",
+    companyName: "",
   });
 
   useEffect(() => {
-    // Check if user is already logged in
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -30,7 +31,6 @@ const Auth = () => {
     };
     checkUser();
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         navigate("/");
@@ -55,11 +55,18 @@ const Auth = () => {
           setLoading(false);
           return;
         }
+        if (userType === "company" && !formData.companyName) {
+          toast.error("Informe o nome da empresa");
+          setLoading(false);
+          return;
+        }
         const { error } = await signUp(
           formData.email,
           formData.password,
           formData.fullName,
-          formData.phone
+          formData.phone,
+          userType,
+          formData.companyName
         );
         if (error) throw error;
         toast.success("Conta criada com sucesso!");
@@ -75,20 +82,43 @@ const Auth = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex items-center justify-center p-6">
       <Card className="w-full max-w-md p-8">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-primary to-secondary p-1 mb-4">
-            <div className="w-full h-full rounded-full bg-background flex items-center justify-center">
-              <Car className="w-8 h-8 text-primary" />
+          <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-primary to-secondary p-1 mb-4 shadow-[var(--shadow-glow)]">
+            <div className="w-full h-full rounded-xl bg-background flex items-center justify-center">
+              <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                ALD
+              </span>
             </div>
           </div>
           <h1 className="text-2xl font-bold mb-2">
-            {isLogin ? "Bem-vindo de volta!" : "Criar Conta"}
+            {isLogin ? "Bem-vindo!" : "Criar Conta"}
           </h1>
-          <p className="text-muted-foreground">
-            {isLogin
-              ? "Entre para continuar"
-              : "Junte-se ao RideConnect"}
+          <p className="text-sm text-muted-foreground">
+            {isLogin ? "Entre para continuar" : "ALD Transportes"}
           </p>
         </div>
+
+        {!isLogin && (
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <Button
+              type="button"
+              variant={userType === "company" ? "default" : "outline"}
+              onClick={() => setUserType("company")}
+              className="h-auto py-4 flex-col gap-2"
+            >
+              <Building2 className="w-6 h-6" />
+              <span className="text-xs">Empresa</span>
+            </Button>
+            <Button
+              type="button"
+              variant={userType === "driver" ? "default" : "outline"}
+              onClick={() => setUserType("driver")}
+              className="h-auto py-4 flex-col gap-2"
+            >
+              <Car className="w-6 h-6" />
+              <span className="text-xs">Motorista</span>
+            </Button>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
@@ -105,6 +135,22 @@ const Auth = () => {
                   required
                 />
               </div>
+              
+              {userType === "company" && (
+                <div>
+                  <Label htmlFor="companyName">Nome da Empresa</Label>
+                  <Input
+                    id="companyName"
+                    type="text"
+                    value={formData.companyName}
+                    onChange={(e) =>
+                      setFormData({ ...formData, companyName: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+              )}
+
               <div>
                 <Label htmlFor="phone">Telefone</Label>
                 <Input
@@ -149,8 +195,8 @@ const Auth = () => {
 
           <Button
             type="submit"
-            variant="hero"
-            className="w-full"
+            variant="default"
+            className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90"
             disabled={loading}
           >
             {loading
@@ -177,4 +223,4 @@ const Auth = () => {
   );
 };
 
-export default Auth;
+export default ALDAuth;

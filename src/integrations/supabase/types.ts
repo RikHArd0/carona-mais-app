@@ -14,48 +14,89 @@ export type Database = {
   }
   public: {
     Tables: {
-      driver_profiles: {
+      alerts: {
+        Row: {
+          alert_type: string
+          created_at: string | null
+          id: string
+          is_resolved: boolean | null
+          message: string
+          request_id: string
+          resolved_at: string | null
+        }
+        Insert: {
+          alert_type?: string
+          created_at?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          message: string
+          request_id: string
+          resolved_at?: string | null
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string | null
+          id?: string
+          is_resolved?: boolean | null
+          message?: string
+          request_id?: string
+          resolved_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alerts_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "transport_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      drivers: {
         Row: {
           created_at: string | null
+          current_location_lat: number | null
+          current_location_lng: number | null
           driver_license: string
           id: string
-          is_online: boolean | null
-          is_verified: boolean | null
+          is_available: boolean | null
           rating: number | null
           total_trips: number | null
           updated_at: string | null
           user_id: string
-          vehicle_color: string
+          vehicle_color: string | null
           vehicle_model: string
           vehicle_plate: string
           vehicle_type: string
         }
         Insert: {
           created_at?: string | null
+          current_location_lat?: number | null
+          current_location_lng?: number | null
           driver_license: string
           id?: string
-          is_online?: boolean | null
-          is_verified?: boolean | null
+          is_available?: boolean | null
           rating?: number | null
           total_trips?: number | null
           updated_at?: string | null
           user_id: string
-          vehicle_color: string
+          vehicle_color?: string | null
           vehicle_model: string
           vehicle_plate: string
           vehicle_type: string
         }
         Update: {
           created_at?: string | null
+          current_location_lat?: number | null
+          current_location_lng?: number | null
           driver_license?: string
           id?: string
-          is_online?: boolean | null
-          is_verified?: boolean | null
+          is_available?: boolean | null
           rating?: number | null
           total_trips?: number | null
           updated_at?: string | null
           user_id?: string
-          vehicle_color?: string
+          vehicle_color?: string | null
           vehicle_model?: string
           vehicle_plate?: string
           vehicle_type?: string
@@ -65,128 +106,105 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          company_name: string | null
           created_at: string | null
+          email: string
           full_name: string
           id: string
           phone: string | null
           updated_at: string | null
+          user_type: string
         }
         Insert: {
           avatar_url?: string | null
+          company_name?: string | null
           created_at?: string | null
+          email: string
           full_name: string
           id: string
           phone?: string | null
           updated_at?: string | null
+          user_type: string
         }
         Update: {
           avatar_url?: string | null
+          company_name?: string | null
           created_at?: string | null
+          email?: string
           full_name?: string
           id?: string
           phone?: string | null
           updated_at?: string | null
+          user_type?: string
         }
         Relationships: []
       }
-      ratings: {
+      transport_requests: {
         Row: {
-          comment: string | null
-          created_at: string | null
-          from_user_id: string
-          id: string
-          rating: number
-          ride_id: string
-          to_user_id: string
-        }
-        Insert: {
-          comment?: string | null
-          created_at?: string | null
-          from_user_id: string
-          id?: string
-          rating: number
-          ride_id: string
-          to_user_id: string
-        }
-        Update: {
-          comment?: string | null
-          created_at?: string | null
-          from_user_id?: string
-          id?: string
-          rating?: number
-          ride_id?: string
-          to_user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ratings_ride_id_fkey"
-            columns: ["ride_id"]
-            isOneToOne: false
-            referencedRelation: "rides"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      rides: {
-        Row: {
+          accepted_at: string | null
+          alert_sent_at: string | null
+          company_id: string
           completed_at: string | null
           created_at: string | null
-          destination_lat: number
-          destination_lng: number
-          destination_location: string
+          destinations: Json
           distance_km: number | null
           driver_id: string | null
-          duration_minutes: number | null
+          estimated_duration_minutes: number | null
           id: string
-          passenger_id: string
-          payment_method: string | null
-          pickup_lat: number
-          pickup_lng: number
-          pickup_location: string
-          price: number
-          ride_type: string
+          notes: string | null
+          num_passengers: number
+          origin_address: string
+          origin_lat: number
+          origin_lng: number
+          scheduled_time: string | null
+          started_at: string | null
           status: string
           updated_at: string | null
+          vehicle_type: string
         }
         Insert: {
+          accepted_at?: string | null
+          alert_sent_at?: string | null
+          company_id: string
           completed_at?: string | null
           created_at?: string | null
-          destination_lat: number
-          destination_lng: number
-          destination_location: string
+          destinations: Json
           distance_km?: number | null
           driver_id?: string | null
-          duration_minutes?: number | null
+          estimated_duration_minutes?: number | null
           id?: string
-          passenger_id: string
-          payment_method?: string | null
-          pickup_lat: number
-          pickup_lng: number
-          pickup_location: string
-          price: number
-          ride_type: string
+          notes?: string | null
+          num_passengers: number
+          origin_address: string
+          origin_lat: number
+          origin_lng: number
+          scheduled_time?: string | null
+          started_at?: string | null
           status?: string
           updated_at?: string | null
+          vehicle_type: string
         }
         Update: {
+          accepted_at?: string | null
+          alert_sent_at?: string | null
+          company_id?: string
           completed_at?: string | null
           created_at?: string | null
-          destination_lat?: number
-          destination_lng?: number
-          destination_location?: string
+          destinations?: Json
           distance_km?: number | null
           driver_id?: string | null
-          duration_minutes?: number | null
+          estimated_duration_minutes?: number | null
           id?: string
-          passenger_id?: string
-          payment_method?: string | null
-          pickup_lat?: number
-          pickup_lng?: number
-          pickup_location?: string
-          price?: number
-          ride_type?: string
+          notes?: string | null
+          num_passengers?: number
+          origin_address?: string
+          origin_lat?: number
+          origin_lng?: number
+          scheduled_time?: string | null
+          started_at?: string | null
           status?: string
           updated_at?: string | null
+          vehicle_type?: string
         }
         Relationships: []
       }
