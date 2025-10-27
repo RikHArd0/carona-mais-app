@@ -1,24 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, User, Phone, Mail, LogOut, Building2 } from "lucide-react";
+import { ArrowLeft, User, Phone, Mail, LogOut, Building2, Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { signOut } from "@/lib/auth-ald";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Profile = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [profile, setProfile] = useState({
     full_name: "",
     phone: "",
     email: "",
     company_name: "",
     user_type: "",
+    avatar_url: "",
   });
 
   useEffect(() => {
@@ -47,6 +51,7 @@ const Profile = () => {
         email: user.email || "",
         company_name: profileData.company_name || "",
         user_type: profileData.user_type || "",
+        avatar_url: profileData.avatar_url || "",
       });
     } catch (error: any) {
       toast.error("Erro ao carregar perfil");
@@ -74,6 +79,65 @@ const Profile = () => {
     } catch (error: any) {
       toast.error("Erro ao atualizar perfil");
       console.error(error);
+    }
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error("Imagem muito grande. Tamanho máximo: 2MB");
+        return;
+      }
+
+      setUploading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const fileExt = file.name.split(".").pop();
+      const filePath = `${user.id}/avatar.${fileExt}`;
+
+      // Delete old avatar if exists
+      if (profile.avatar_url) {
+        const oldPath = profile.avatar_url.split("/").pop();
+        if (oldPath) {
+          await supabase.storage.from("avatars").remove([`${user.id}/${oldPath}`]);
+        }
+      }
+
+      // Upload new avatar
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      // Update profile
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: publicUrl })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+
+      setProfile({ ...profile, avatar_url: publicUrl });
+      toast.success("Foto atualizada com sucesso!");
+    } catch (error: any) {
+      toast.error("Erro ao fazer upload da foto");
+      console.error(error);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -109,8 +173,29 @@ const Profile = () => {
       <main className="p-6 max-w-md mx-auto space-y-6">
         {/* Profile Avatar */}
         <Card className="p-6 text-center">
-          <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white text-3xl font-bold mb-4">
-            {profile.full_name.charAt(0) || "U"}
+          <div className="relative w-24 h-24 mx-auto mb-4">
+            <Avatar className="w-24 h-24">
+              <AvatarImage src={profile.avatar_url} alt={profile.full_name} />
+              <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white text-3xl">
+                {profile.full_name.charAt(0) || "U"}
+              </AvatarFallback>
+            </Avatar>
+            <Button
+              size="icon"
+              variant="secondary"
+              className="absolute bottom-0 right-0 rounded-full w-8 h-8 shadow-lg"
+              onClick={handleAvatarClick}
+              disabled={uploading}
+            >
+              <Camera className="w-4 h-4" />
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarUpload}
+            />
           </div>
           <h2 className="font-semibold text-xl">{profile.full_name}</h2>
           <p className="text-sm text-muted-foreground">{profile.email}</p>
