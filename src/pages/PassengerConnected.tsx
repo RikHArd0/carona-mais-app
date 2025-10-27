@@ -3,16 +3,103 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, MapPin, Navigation, Search, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-const Passenger = () => {
+const PassengerConnected = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState("");
+  const [selectedRideType, setSelectedRideType] = useState<"economy" | "comfort" | "premium">("economy");
+
+  const rideOptions = [
+    {
+      type: "economy" as const,
+      name: "RideConnect X",
+      emoji: "🚗",
+      description: "2-3 min • Econômico",
+      price: 12.50,
+      color: "primary"
+    },
+    {
+      type: "comfort" as const,
+      name: "RideConnect Comfort",
+      emoji: "🚙",
+      description: "3-4 min • Confortável",
+      price: 18.90,
+      color: "secondary"
+    },
+    {
+      type: "premium" as const,
+      name: "RideConnect Premium",
+      emoji: "🏎️",
+      description: "1-2 min • Luxuoso",
+      price: 28.50,
+      color: "accent"
+    }
+  ];
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    setUserId(user.id);
+  };
+
+  const handleRequestRide = async () => {
+    if (!origin || !destination || !userId) {
+      toast.error("Preencha origem e destino");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const selectedOption = rideOptions.find(r => r.type === selectedRideType);
+      
+      // Simulate geocoding - in production, use a real geocoding service
+      const pickupLat = -23.5505 + Math.random() * 0.1;
+      const pickupLng = -46.6333 + Math.random() * 0.1;
+      const destLat = -23.5505 + Math.random() * 0.1;
+      const destLng = -46.6333 + Math.random() * 0.1;
+
+      const { error } = await supabase
+        .from("rides")
+        .insert({
+          passenger_id: userId,
+          pickup_location: origin,
+          pickup_lat: pickupLat,
+          pickup_lng: pickupLng,
+          destination_location: destination,
+          destination_lat: destLat,
+          destination_lng: destLng,
+          ride_type: selectedRideType,
+          price: selectedOption?.price || 12.50,
+          status: "pending"
+        });
+
+      if (error) throw error;
+
+      toast.success("Corrida solicitada com sucesso!");
+      navigate("/history");
+    } catch (error: any) {
+      console.error("Error:", error);
+      toast.error("Erro ao solicitar corrida");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      {/* Header */}
       <header className="p-6 flex items-center gap-4 bg-card/50 backdrop-blur-sm sticky top-0 z-10 border-b">
         <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
           <ArrowLeft className="w-5 h-5" />
@@ -24,7 +111,6 @@ const Passenger = () => {
       </header>
 
       <main className="p-6 max-w-md mx-auto">
-        {/* Map Preview */}
         <Card className="h-64 mb-6 overflow-hidden relative group">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
             <div className="text-center space-y-2">
@@ -36,7 +122,6 @@ const Passenger = () => {
           </div>
         </Card>
 
-        {/* Location Inputs */}
         <div className="space-y-3 mb-6">
           <Card className="p-4">
             <div className="flex items-center gap-3">
@@ -75,63 +160,37 @@ const Passenger = () => {
           </Card>
         </div>
 
-        {/* Ride Options */}
         <div className="space-y-3 mb-6">
           <h3 className="font-semibold text-sm text-muted-foreground">Escolha uma opção</h3>
           
-          <Card className="p-4 cursor-pointer hover:border-primary transition-[var(--transition-smooth)] border-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  🚗
+          {rideOptions.map((option) => (
+            <Card 
+              key={option.type}
+              className={`p-4 cursor-pointer transition-[var(--transition-smooth)] border-2 ${
+                selectedRideType === option.type 
+                  ? `border-${option.color}` 
+                  : "hover:border-primary"
+              }`}
+              onClick={() => setSelectedRideType(option.type)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-lg bg-${option.color}/10 flex items-center justify-center`}>
+                    {option.emoji}
+                  </div>
+                  <div>
+                    <div className="font-semibold">{option.name}</div>
+                    <div className="text-xs text-muted-foreground">{option.description}</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="font-semibold">RideConnect X</div>
-                  <div className="text-xs text-muted-foreground">2-3 min • Econômico</div>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="font-bold text-primary">R$ 12,50</div>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-4 cursor-pointer hover:border-secondary transition-[var(--transition-smooth)] border-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center">
-                  🚙
-                </div>
-                <div>
-                  <div className="font-semibold">RideConnect Comfort</div>
-                  <div className="text-xs text-muted-foreground">3-4 min • Confortável</div>
+                <div className="text-right">
+                  <div className={`font-bold text-${option.color}`}>R$ {option.price.toFixed(2)}</div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="font-bold text-secondary">R$ 18,90</div>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-4 cursor-pointer hover:border-accent transition-[var(--transition-smooth)] border-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
-                  🏎️
-                </div>
-                <div>
-                  <div className="font-semibold">RideConnect Premium</div>
-                  <div className="text-xs text-muted-foreground">1-2 min • Luxuoso</div>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="font-bold text-accent">R$ 28,50</div>
-              </div>
-            </div>
-          </Card>
+            </Card>
+          ))}
         </div>
 
-        {/* Payment Method */}
         <Card className="p-4 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -145,14 +204,14 @@ const Passenger = () => {
           </div>
         </Card>
 
-        {/* Request Ride Button */}
         <Button 
           variant="hero" 
           size="lg" 
           className="w-full"
-          disabled={!origin || !destination}
+          disabled={!origin || !destination || loading}
+          onClick={handleRequestRide}
         >
-          Solicitar Corrida
+          {loading ? "Solicitando..." : "Solicitar Corrida"}
         </Button>
 
         <p className="text-xs text-center text-muted-foreground mt-4">
@@ -163,4 +222,4 @@ const Passenger = () => {
   );
 };
 
-export default Passenger;
+export default PassengerConnected;

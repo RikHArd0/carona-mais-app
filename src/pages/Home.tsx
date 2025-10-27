@@ -1,20 +1,63 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Car, User, MapPin, Clock } from "lucide-react";
+import { Car, User, MapPin, Clock, LogIn, UserCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Home = () => {
   const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    // Check if user is logged in
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+    };
+    checkUser();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
       {/* Header */}
       <header className="p-6 pb-0">
-        <div className="max-w-md mx-auto">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            RideConnect
-          </h1>
-          <p className="text-muted-foreground mt-1">Seu transporte, sua escolha</p>
+        <div className="max-w-md mx-auto flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              RideConnect
+            </h1>
+            <p className="text-muted-foreground mt-1">Seu transporte, sua escolha</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            {isLoggedIn ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/profile")}
+              >
+                <UserCircle className="w-6 h-6" />
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/auth")}
+              >
+                <LogIn className="w-4 h-4 mr-2" />
+                Entrar
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -98,12 +141,21 @@ const Home = () => {
 
         {/* CTA */}
         <div className="mt-8 text-center">
-          <p className="text-sm text-muted-foreground mb-3">
-            Novo por aqui?
-          </p>
-          <Button variant="outline" size="lg" className="w-full max-w-xs">
-            Criar Conta
-          </Button>
+          {!isLoggedIn && (
+            <>
+              <p className="text-sm text-muted-foreground mb-3">
+                Novo por aqui?
+              </p>
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full max-w-xs"
+                onClick={() => navigate("/auth")}
+              >
+                Criar Conta
+              </Button>
+            </>
+          )}
         </div>
       </main>
     </div>
