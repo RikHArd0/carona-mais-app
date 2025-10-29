@@ -41,9 +41,15 @@ const Profile = () => {
         .from("profiles")
         .select("*")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+
+      if (!profileData) {
+        toast.error("Perfil não encontrado");
+        navigate("/auth");
+        return;
+      }
 
       setProfile({
         full_name: profileData.full_name || "",
