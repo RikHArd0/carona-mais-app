@@ -15,13 +15,16 @@ const ALDHome = () => {
     checkUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session);
       if (session) {
         setIsLoggedIn(true);
-        const { data: profile } = await supabase
+        const { data: profile, error } = await supabase
           .from("profiles")
           .select("user_type")
           .eq("id", session.user.id)
           .maybeSingle();
+        console.log("Auth change - Profile:", profile);
+        console.log("Auth change - Error:", error);
         setUserType(profile?.user_type || null);
       } else {
         setIsLoggedIn(false);
@@ -34,13 +37,16 @@ const ALDHome = () => {
 
   const checkUser = async () => {
     const { data: { session } } = await supabase.auth.getSession();
+    console.log("Session:", session);
     if (session) {
       setIsLoggedIn(true);
-      const { data: profile } = await supabase
+      const { data: profile, error } = await supabase
         .from("profiles")
         .select("user_type")
         .eq("id", session.user.id)
         .maybeSingle();
+      console.log("Profile data:", profile);
+      console.log("Profile error:", error);
       setUserType(profile?.user_type || null);
     }
   };
@@ -48,14 +54,14 @@ const ALDHome = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
       <header className="p-6 pb-0">
-        <div className="max-w-md mx-auto flex items-center justify-between">
-          <div>
+        <div className="max-w-md mx-auto flex items-start justify-between">
+          <div className="flex-1">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               ALD Transportes
             </h1>
             <p className="text-muted-foreground mt-1">Sistema de Gestão de Transporte</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <ThemeToggle />
             {isLoggedIn ? (
               <Button variant="ghost" size="icon" onClick={() => navigate("/profile")}>
