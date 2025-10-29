@@ -77,13 +77,14 @@ const ALDHome = () => {
         </div>
       </header>
 
-      <main className="p-6 pt-12 max-w-md mx-auto">
-        {isLoggedIn ? (
-          <>
-            <div className="text-center mb-12">
-              <h2 className="text-2xl font-bold mb-2">Bem-vindo de volta!</h2>
-              <p className="text-muted-foreground">O que deseja fazer hoje?</p>
-            </div>
+      <main className="flex items-center justify-center min-h-[calc(100vh-200px)] p-6">
+        <div className="w-full max-w-md mx-auto">
+          {isLoggedIn ? (
+            <>
+              <div className="text-center mb-12">
+                <h2 className="text-2xl font-bold mb-2">Bem-vindo de volta!</h2>
+                <p className="text-muted-foreground">O que deseja fazer hoje?</p>
+              </div>
 
             <div className="space-y-4">
               {userType === "company" && (
@@ -179,9 +180,10 @@ const ALDHome = () => {
               >
                 Começar Agora
               </Button>
-            </div>
-          </>
-        )}
+              </div>
+            </>
+          )}
+        </div>
       </main>
     </div>
   );
