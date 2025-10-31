@@ -53,32 +53,33 @@ const ALDHome = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      <header className="p-6 pb-0">
-        <div className="max-w-md mx-auto flex items-start justify-between">
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              ALD Transportes
-            </h1>
-            <p className="text-muted-foreground mt-1">Sistema de Gestão de Transporte</p>
+      <div className="w-full max-w-md mx-auto px-6">
+        <header className="py-6">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                ALD Transportes
+              </h1>
+              <p className="text-muted-foreground mt-1">Sistema de Gestão de Transporte</p>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <ThemeToggle />
+              {isLoggedIn ? (
+                <Button variant="ghost" size="icon" onClick={() => navigate("/profile")}>
+                  <UserCircle className="w-6 h-6" />
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" onClick={() => navigate("/auth")}>
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Entrar
+                </Button>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <ThemeToggle />
-            {isLoggedIn ? (
-              <Button variant="ghost" size="icon" onClick={() => navigate("/profile")}>
-                <UserCircle className="w-6 h-6" />
-              </Button>
-            ) : (
-              <Button variant="outline" size="sm" onClick={() => navigate("/auth")}>
-                <LogIn className="w-4 h-4 mr-2" />
-                Entrar
-              </Button>
-            )}
-          </div>
-        </div>
-      </header>
+        </header>
 
-      <main className="flex items-center justify-center min-h-[calc(100vh-200px)] p-6">
-        <div className="w-full max-w-md mx-auto">
+        <main className="flex items-center justify-center min-h-[calc(100vh-300px)]">
+          <div className="w-full">
           {isLoggedIn ? (
             <>
               <div className="text-center mb-12">
@@ -183,10 +184,12 @@ const ALDHome = () => {
               </div>
             </>
           )}
-        </div>
-      </main>
+          </div>
+        </main>
+      </div>
     </div>
   );
 };
+
 
 export default ALDHome;
