@@ -14,18 +14,23 @@ const ALDHome = () => {
   useEffect(() => {
     checkUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event, session);
       if (session) {
         setIsLoggedIn(true);
-        const { data: profile, error } = await supabase
-          .from("profiles")
-          .select("user_type")
-          .eq("id", session.user.id)
-          .maybeSingle();
-        console.log("Auth change - Profile:", profile);
-        console.log("Auth change - Error:", error);
-        setUserType(profile?.user_type || null);
+        // Defer Supabase call to avoid deadlock
+        setTimeout(() => {
+          supabase
+            .from("profiles")
+            .select("user_type")
+            .eq("id", session.user.id)
+            .maybeSingle()
+            .then(({ data: profile, error }) => {
+              console.log("Auth change - Profile:", profile);
+              console.log("Auth change - Error:", error);
+              setUserType(profile?.user_type || null);
+            });
+        }, 0);
       } else {
         setIsLoggedIn(false);
         setUserType(null);
