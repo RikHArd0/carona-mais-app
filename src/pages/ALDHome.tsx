@@ -53,21 +53,21 @@ const ALDHome = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+      <div className="fixed top-6 right-6 z-50 flex items-center gap-2">
+        <ThemeToggle />
+        {isLoggedIn ? (
+          <Button variant="ghost" size="icon" onClick={() => navigate("/profile")}>
+            <UserCircle className="w-6 h-6" />
+          </Button>
+        ) : (
+          <Button variant="outline" size="sm" onClick={() => navigate("/auth")}>
+            <LogIn className="w-4 h-4 mr-2" />
+            Entrar
+          </Button>
+        )}
+      </div>
       <div className="w-full max-w-md mx-auto px-6">
-        <header className="py-6 relative">
-          <div className="absolute top-6 right-6 flex items-center gap-2">
-            <ThemeToggle />
-            {isLoggedIn ? (
-              <Button variant="ghost" size="icon" onClick={() => navigate("/profile")}>
-                <UserCircle className="w-6 h-6" />
-              </Button>
-            ) : (
-              <Button variant="outline" size="sm" onClick={() => navigate("/auth")}>
-                <LogIn className="w-4 h-4 mr-2" />
-                Entrar
-              </Button>
-            )}
-          </div>
+        <header className="py-6">
           <div className="text-center">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               ALD Transportes
